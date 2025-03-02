@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I nostri giochini</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #bec4c0;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #538d4e;
+            color: white;
+        }
+        .tab-button.active {
+            background-color: #346c31;
+        }
+        .tab {
+            display: none;
+        }
+        .tab.active {
+            display: block;
+        }
+        .iframe-container {
+            height: 100vh;
+            margin-bottom: 40px;
+            border-radius: 10px;
+        }
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .game-frame.active {
+            display: block;
+        }
+        .stats {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .stats-grid {
+            display: grid;
+            gap: 20px;
+            padding: 10px;
+        }
+        .fallback-message {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            display: none;
+        }
+        .stat-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .stat-buttons button, .stat-buttons select {
+            padding: 8px 12px;
+            font-size: 16px;
+            cursor: pointer;
+            min-height: 44px;
+        }
+        .try-distribution {
+            margin-top: 15px;
+            max-width: 100%;
+            padding: 5px;
+        }
+        .try-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+        .try-row span {
+            min-width: 20px;
+        }
+        .try-bar {
+            background-color: #538d4e;
+            padding: 4px 8px;
+            min-width: 24px;
+            text-align: right;
+            color: white;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            max-width: calc(100% - 40px);
+        }
+        @media (min-width: 769px) {
+            /* Desktop layout */
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            /* Mobile layout */
+            .stats-grid {
+                grid-template-columns: 1fr;
+                max-width: 100%;
+                padding: 10px;
+            }
+            /* Add some visual separation between stats sections */
+            .stats-grid > div {
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 20px;
+            }
+            .stats-grid > div:last-child {
+                border-bottom: none;
+            }
+            .stat-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .stat-buttons button, .stat-buttons select {
+                width: 100%;
+                margin: 0;
+            }
+            h2 {
+                font-size: 1.5em;
+                margin: 10px 0;
+            }
+            h3 {
+                font-size: 1.2em;
+                margin: 8px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="showTab('games')">Giochi</button>
+        <button class="tab-button" onclick="showTab('stats')">Statistiche</button>
+    </div>
+
+    <div id="games" class="tab active">
+        <h2>Wordle Inglese</h2>
+        <div class="iframe-container">
+            <iframe id="english-frame" class="game-frame" src="https://mikhad.github.io/wordle/#daily" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+        </div>
+
+        <h2>Wordle Italiano</h2>
+        <div class="iframe-container">
+            <iframe id="italian-frame" class="game-frame" src="https://pietroppeter.github.io/wordle-it/" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+        </div>
+
+        <h2>Wordle Spagnolo</h2>
+        <div class="iframe-container">
+            <iframe id="spanish-frame" class="game-frame" src="https://lapalabradeldia.com/" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+        </div>
+
+        <h2>Travle</h2>
+        <div class="iframe-container">
+            <iframe id="travle-frame" class="game-frame" src="https://travle.earth" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+        </div>
+    </div>
+
+    <div id="stats" class="tab">
+        <div class="stats">
+            <h2>Le mie statistiche</h2>
+            <div class="stats-grid">
+                <div id="english-stats">
+                    <h3>Inglese</h3>
+                    <p>Partite giocate: <span id="english-played">0</span></p>
+                    <p>Vittorie: <span id="english-winrate">0</span>%</p>
+                    <p>Media tentativi: <span id="english-avg-tries">0</span></p>
+                    <div class="stat-buttons">
+                        <select id="english-tries">
+                            <option value="0">Non risolto</option>
+                            <option value="1">1 tentativo</option>
+                            <option value="2">2 tentativi</option>
+                            <option value="3">3 tentativi</option>
+                            <option value="4">4 tentativi</option>
+                            <option value="5">5 tentativi</option>
+                            <option value="6">6 tentativi</option>
+                        </select>
+                        <button onclick="recordWordleGame('english')">Registra Partita</button>
+                        <button onclick="resetStats('english')">Resetta Statistiche</button>
+                    </div>
+                    <div class="try-distribution">
+                        <div class="try-row">
+                            <span>1:</span>
+                            <div class="try-bar" id="english-dist-1">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>2:</span>
+                            <div class="try-bar" id="english-dist-2">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>3:</span>
+                            <div class="try-bar" id="english-dist-3">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>4:</span>
+                            <div class="try-bar" id="english-dist-4">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>5:</span>
+                            <div class="try-bar" id="english-dist-5">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>6:</span>
+                            <div class="try-bar" id="english-dist-6">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="italian-stats">
+                    <h3>Italiano</h3>
+                    <p>Partite giocate: <span id="italian-played">0</span></p>
+                    <p>Vittorie: <span id="italian-winrate">0</span>%</p>
+                    <p>Media tentativi: <span id="italian-avg-tries">0</span></p>
+                    <div class="stat-buttons">
+                        <select id="italian-tries">
+                            <option value="0">Non risolto</option>
+                            <option value="1">1 tentativo</option>
+                            <option value="2">2 tentativi</option>
+                            <option value="3">3 tentativi</option>
+                            <option value="4">4 tentativi</option>
+                            <option value="5">5 tentativi</option>
+                            <option value="6">6 tentativi</option>
+                        </select>
+                        <button onclick="recordWordleGame('italian')">Registra Partita</button>
+                        <button onclick="resetStats('italian')">Resetta Statistiche</button>
+                    </div>
+                    <div class="try-distribution">
+                        <div class="try-row">
+                            <span>1:</span>
+                            <div class="try-bar" id="italian-dist-1">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>2:</span>
+                            <div class="try-bar" id="italian-dist-2">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>3:</span>
+                            <div class="try-bar" id="italian-dist-3">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>4:</span>
+                            <div class="try-bar" id="italian-dist-4">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>5:</span>
+                            <div class="try-bar" id="italian-dist-5">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>6:</span>
+                            <div class="try-bar" id="italian-dist-6">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="spanish-stats">
+                    <h3>Spagnolo</h3>
+                    <p>Partite giocate: <span id="spanish-played">0</span></p>
+                    <p>Vittorie: <span id="spanish-winrate">0</span>%</p>
+                    <p>Media tentativi: <span id="spanish-avg-tries">0</span></p>
+                    <div class="stat-buttons">
+                        <select id="spanish-tries">
+                            <option value="0">Non risolto</option>
+                            <option value="1">1 tentativo</option>
+                            <option value="2">2 tentativi</option>
+                            <option value="3">3 tentativi</option>
+                            <option value="4">4 tentativi</option>
+                            <option value="5">5 tentativi</option>
+                            <option value="6">6 tentativi</option>
+                        </select>
+                        <button onclick="recordWordleGame('spanish')">Registra Partita</button>
+                        <button onclick="resetStats('spanish')">Resetta Statistiche</button>
+                    </div>
+                    <div class="try-distribution">
+                        <div class="try-row">
+                            <span>1:</span>
+                            <div class="try-bar" id="spanish-dist-1">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>2:</span>
+                            <div class="try-bar" id="spanish-dist-2">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>3:</span>
+                            <div class="try-bar" id="spanish-dist-3">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>4:</span>
+                            <div class="try-bar" id="spanish-dist-4">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>5:</span>
+                            <div class="try-bar" id="spanish-dist-5">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>6:</span>
+                            <div class="try-bar" id="spanish-dist-6">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="travle-stats">
+                    <h3>Travle</h3>
+                    <p>Partite giocate: <span id="travle-played">0</span></p>
+                    <p>Media punteggio: <span id="travle-avg-score">0</span>%</p>
+                    <div class="stat-buttons">
+                        <select id="travle-result">
+                            <option value="100">Perfetto</option>
+                            <option value="75">Giusto ma non perfetto</option>
+                            <option value="50">Bene ma non troppo</option>
+                            <option value="25">Fatto cagare</option>
+                        </select>
+                        <button onclick="recordTravleGame()">Registra Partita</button>
+                        <button onclick="resetStats('travle')">Resetta Statistiche</button>
+                    </div>
+                    <div class="try-distribution">
+                        <div class="try-row">
+                            <span>Perfetto:</span>
+                            <div class="try-bar" id="travle-dist-100">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>Quasi:</span>
+                            <div class="try-bar" id="travle-dist-75">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>Bene:</span>
+                            <div class="try-bar" id="travle-dist-50">0</div>
+                        </div>
+                        <div class="try-row">
+                            <span>Male:</span>
+                            <div class="try-bar" id="travle-dist-25">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const games = {
+            english: 'https://www.nytimes.com/games/wordle/index.html',
+            italian: 'https://pietroppeter.github.io/wordle-it/',
+            spanish: 'https://lapalabradeldia.com/',
+            tradle: 'https://travle.earth'
+        };
+
+        document.querySelectorAll('.game-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const game = button.dataset.game;
+                const frame = document.getElementById(`${game}-frame`);
+                
+                // Try to show the iframe first
+                document.querySelectorAll('.game-frame').forEach(f => f.classList.remove('active'));
+                document.querySelectorAll('.game-button').forEach(b => b.classList.remove('active'));
+                
+                frame.classList.add('active');
+                button.classList.add('active');
+
+                // If the iframe fails to load, show fallback message and open in new tab
+                frame.onerror = () => {
+                    document.getElementById('fallback-message').style.display = 'block';
+                    window.open(games[game], '_blank');
+                };
+            });
+        });
+
+        function recordWordleGame(language) {
+            const tries = parseInt(document.getElementById(`${language}-tries`).value);
+            const savedStats = localStorage.getItem(`${language}-stats`) || JSON.stringify({
+                played: 0,
+                wins: 0,
+                distribution: [0, 0, 0, 0, 0, 0],
+                totalTries: 0
+            });
+            const stats = JSON.parse(savedStats);
+            
+            stats.played = (stats.played || 0) + 1;
+            if (tries > 0) {
+                stats.wins = (stats.wins || 0) + 1;
+                stats.distribution = stats.distribution || [0, 0, 0, 0, 0, 0];
+                stats.distribution[tries - 1]++;
+                stats.totalTries = (stats.totalTries || 0) + tries;
+            }
+
+            // Calculate stats
+            stats.winRate = Math.round((stats.wins / stats.played) * 100);
+            stats.avgTries = stats.wins > 0 
+                ? Math.round((stats.totalTries / stats.wins) * 10) / 10 
+                : 0;
+
+            // Update display
+            document.getElementById(`${language}-played`).textContent = stats.played;
+            document.getElementById(`${language}-winrate`).textContent = stats.winRate;
+            document.getElementById(`${language}-avg-tries`).textContent = stats.avgTries;
+
+            // Update distribution
+            const maxDist = Math.max(...stats.distribution);
+            stats.distribution.forEach((count, index) => {
+                const bar = document.getElementById(`${language}-dist-${index + 1}`);
+                bar.textContent = count;
+                bar.style.width = maxDist > 0 ? `${(count / maxDist) * 100}px` : '20px';
+            });
+
+            localStorage.setItem(`${language}-stats`, JSON.stringify(stats));
+        }
+
+        function resetStats(language) {
+            if (confirm(`Are you sure you want to reset ${language} statistics?`)) {
+                const stats = {
+                    played: 0,
+                    wins: 0,
+                    distribution: [0, 0, 0, 0, 0, 0],
+                    totalTries: 0,
+                    winRate: 0,
+                    avgTries: 0
+                };
+                
+                document.getElementById(`${language}-played`).textContent = 0;
+                document.getElementById(`${language}-winrate`).textContent = 0;
+                document.getElementById(`${language}-avg-tries`).textContent = 0;
+                
+                for (let i = 1; i <= 6; i++) {
+                    const bar = document.getElementById(`${language}-dist-${i}`);
+                    bar.textContent = 0;
+                    bar.style.width = '20px';
+                }
+                
+                localStorage.setItem(`${language}-stats`, JSON.stringify(stats));
+            }
+        }
+
+        function recordTravleGame() {
+            const result = parseInt(document.getElementById('travle-result').value);
+            const savedStats = localStorage.getItem('travle-stats') || JSON.stringify({
+                played: 0,
+                totalScore: 0,
+                distribution: {100: 0, 75: 0, 50: 0, 25: 0}
+            });
+            const stats = JSON.parse(savedStats);
+            
+            stats.played = (stats.played || 0) + 1;
+            stats.totalScore = (stats.totalScore || 0) + result;
+            stats.distribution[result]++;
+            
+            // Calculate average score
+            stats.avgScore = Math.round(stats.totalScore / stats.played);
+
+            // Update display
+            document.getElementById('travle-played').textContent = stats.played;
+            document.getElementById('travle-avg-score').textContent = stats.avgScore;
+
+            // Update distribution
+            const maxDist = Math.max(...Object.values(stats.distribution));
+            [100, 75, 50, 25].forEach(score => {
+                const bar = document.getElementById(`travle-dist-${score}`);
+                const count = stats.distribution[score];
+                bar.textContent = count;
+                bar.style.width = maxDist > 0 ? `${(count / maxDist) * 100}px` : '20px';
+            });
+
+            localStorage.setItem('travle-stats', JSON.stringify(stats));
+        }
+
+        // Modify initStats to include Travle
+        function initStats() {
+            ['english', 'italian', 'spanish', 'travle'].forEach(game => {
+                const savedStats = localStorage.getItem(`${game}-stats`);
+                if (savedStats) {
+                    const stats = JSON.parse(savedStats);
+                    document.getElementById(`${game}-played`).textContent = stats.played || 0;
+                    
+                    if (game === 'travle') {
+                        document.getElementById('travle-avg-score').textContent = stats.avgScore || 0;
+                        if (stats.distribution) {
+                            const maxDist = Math.max(...Object.values(stats.distribution));
+                            [100, 75, 50, 25].forEach(score => {
+                                const bar = document.getElementById(`travle-dist-${score}`);
+                                const count = stats.distribution[score];
+                                bar.textContent = count;
+                                bar.style.width = maxDist > 0 ? `${(count / maxDist) * 100}px` : '20px';
+                            });
+                        }
+                    } else {
+                        // Existing Wordle stats initialization
+                        document.getElementById(`${game}-winrate`).textContent = stats.winRate || 0;
+                        document.getElementById(`${game}-avg-tries`).textContent = stats.avgTries || 0;
+                        
+                        if (stats.distribution) {
+                            const maxDist = Math.max(...stats.distribution);
+                            stats.distribution.forEach((count, index) => {
+                                const bar = document.getElementById(`${game}-dist-${index + 1}`);
+                                bar.textContent = count;
+                                bar.style.width = maxDist > 0 ? `${(count / maxDist) * 100}px` : '20px';
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        // Call initStats when the page loads
+        window.addEventListener('load', initStats);
+        document.querySelector('button[data-game="spanish"]').click();
+
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
+        }
+    </script>
+</body>
+</html> 
